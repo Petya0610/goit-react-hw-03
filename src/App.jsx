@@ -1,35 +1,45 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect, useState } from 'react';
+import ContactForm from './components/ContactForm/ContactForm';
+import ContactList from './components/ContactList/ContactList';
+import SearchBox from './components/SearchBox/SearchBox';
+import contactData from './components/data/contactData.json';
+import { nanoid } from 'nanoid';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [userContacts, setUserContacts] = useState(() => {
+    return (
+      JSON.parse(window.localStorage.getItem('contactUser')) ?? contactData
+    );
+  });
+  const [serchUser, setSerchUser] = useState('');
+
+  const filteredContacts = userContacts.filter(item =>
+    item.name.toLowerCase().includes(serchUser)
+  );
+
+  useEffect(() => {
+    window.localStorage.setItem('contactUser', JSON.stringify(userContacts));
+  }, [userContacts]);
+
+  const addContact = ({ values }) => {
+    setUserContacts(prev => [...prev, { id: nanoid(), ...values }]);
+  };
+
+  const handleDeleteContactUser = id => {
+    setUserContacts(prev => prev.filter(item => item.id !== id));
+  };
 
   return (
     <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      <h1 className='pageTitle'>Phonebook</h1>
+      <ContactForm addContact={addContact} />
+      <SearchBox serchUser={serchUser} setSerchUser={setSerchUser} />
+      <ContactList
+        userContacts={filteredContacts}
+        handleDeleteContactUser={handleDeleteContactUser}
+      />
     </>
-  )
+  );
 }
 
-export default App
+export default App;
